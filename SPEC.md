@@ -1,4 +1,4 @@
-# qb-moderator — engine & protocol spec
+# qb-scorekeeper — engine & protocol spec
 
 Version: 0.1 (solo mode). The room protocol (v1) extends these same
 events over WebSocket; the engine is identical in a browser tab and in
@@ -349,7 +349,7 @@ optional `onMessage(m)` handler receives messages no named branch
 consumed — the audio-broadcast traffic arrives there; consensus should
 re-vendor at its convenience, older copies keep working.) Note the DO never inspects
 `snapshot` or `qlog` payloads: each consumer defines its own shapes
-(qb-moderator's are described above; consensus renders its scoreboard
+(qb-scorekeeper's are described above; consensus renders its scoreboard
 snapshot), so the shared instance serves both without coordination.
 
 Server-authoritative grading + remote text reveal (the full rooms.md

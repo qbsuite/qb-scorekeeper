@@ -1,5 +1,5 @@
 {
-  "name": "qb-moderator",
+  "name": "qb-scorekeeper",
   "private": true,
   "scripts": {
     "test": "node --test tests/*.test.mjs"

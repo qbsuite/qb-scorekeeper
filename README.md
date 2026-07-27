@@ -1,6 +1,6 @@
-# qb-moderator
+# qb-scorekeeper
 
-A quizbowl moderator tool: reads packets aloud (or lets you read from
+A quizbowl scorekeeper: reads packets aloud (or lets you read from
 the screen), takes buzzes, adjudicates answers, and keeps score with
 real quizbowl rules — powers before the `(*)` mark, negs only while the
 question is still being read.

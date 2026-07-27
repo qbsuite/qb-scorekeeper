@@ -1,4 +1,4 @@
-# qb-moderator room server. Self-hostable: `npx wrangler deploy` on any
+# qb-scorekeeper room server. Self-hostable: `npx wrangler deploy` on any
 # Cloudflare account (free plan — SQLite-backed Durable Objects +
 # WebSocket hibernation cost nothing at friends scale). Point the app
 # at your instance with ?server=https://qb-rooms.<you>.workers.dev

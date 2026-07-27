@@ -1,4 +1,4 @@
-// app.js — qb-moderator host console.
+// app.js — qb-scorekeeper host console.
 //
 // Layout (settled with Denis via mockups, July 2026): full-width
 // question text, set/mode/roster/settings in the top bar, consensus-

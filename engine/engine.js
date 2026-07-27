@@ -1,4 +1,4 @@
-// engine.js — the qb-moderator game engine.
+// engine.js — the qb-scorekeeper game engine.
 //
 // A pure, event-sourced reducer (see SPEC.md). No I/O, no clocks, no
 // randomness: callers pass timestamps and reveal-unit positions in the

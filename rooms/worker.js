@@ -1,4 +1,4 @@
-// rooms/worker.js — the qb-moderator room server (Cloudflare Worker +
+// rooms/worker.js — the qb-scorekeeper room server (Cloudflare Worker +
 // one Durable Object per room).
 //
 // v1 is a HOST-AUTHORITATIVE relay (a deliberate simplification of the
@@ -106,7 +106,7 @@ export default {
       return stub.fetch(request);
     }
 
-    return new Response('qb-moderator room server', { headers: CORS });
+    return new Response('qb-scorekeeper room server', { headers: CORS });
   },
 };
 

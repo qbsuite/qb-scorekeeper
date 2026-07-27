@@ -1,6 +1,6 @@
 # Third-party notices
 
-qb-moderator's own code is MIT (see `LICENSE`). The `app/vendor/` directory
+qb-scorekeeper's own code is MIT (see `LICENSE`). The `app/vendor/` directory
 redistributes the third-party code below; `reveal_units.js` there is this
 project's own code (shared with the qbsuite site).
 

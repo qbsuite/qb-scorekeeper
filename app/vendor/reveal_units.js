@@ -1,6 +1,6 @@
 // reveal_units.js — THE canonical reveal-unit contract (classic script).
 //
-// SINGLE SOURCE OF TRUTH, shared by the qb-moderator app and the
+// SINGLE SOURCE OF TRUTH, shared by the qb-scorekeeper app and the
 // library-of-stock reader: the site's build vendors this exact file
 // (lib/js/reveal_units.js) from this repo — edit it HERE, never there.
 // Unit splitting must stay identical across every consumer: powerIdx
