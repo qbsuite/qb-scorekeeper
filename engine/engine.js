@@ -306,10 +306,13 @@ export function reduce(state, event) {
       };
     }
 
-    // Wrong: neg only while the question was still being read — unless
-    // the pad forced the neg value (the host insisted on a penalty).
+    // Wrong: neg only while the question was still being read. Pad-
+    // forced points override — the neg value IS a neg even post-reading
+    // (the host insisted on a penalty), and anything else (an explicit
+    // 0) is a penalty-free miss that stays out of the neg stat.
     const neg = state.config.scoring && !cur.readingFinished;
-    const kind = event.points === state.config.points.neg ? 'neg'
+    const kind = event.points != null
+      ? (event.points === state.config.points.neg ? 'neg' : 'miss')
       : cur.readingFinished ? 'miss' : 'neg';
     const entry = {
       qid: cur.qid, player, kind,

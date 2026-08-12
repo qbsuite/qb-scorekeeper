@@ -82,7 +82,8 @@ team?, points, kind, partIdx?, unitIdx, ts}]}`. Selectors over `log`
 `tossupStats(state)` — per player `{powers, gets, negs}` from entry
 kinds (superpowers count as powers; when a verdict carries forced pad
 points, the kind follows the forced value — a pad +15 is a power, a
-forced −5 after reading a neg — so voice-mode stat lines stay honest).
+forced −5 after reading a neg, a forced 0 mid-reading a penalty-free
+miss that stays out of the neg count — so stat lines stay honest).
 **Teams**: a wrong buzz locks out the buzzer's
 whole team (standard rules); unassigned players lock out individually;
 the question deads when every player is locked after reading finishes.

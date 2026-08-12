@@ -370,6 +370,17 @@ test('pad-forced points set the kind for the stat line', () => {
   assert.deepEqual(tossupStats(t).B, { powers: 0, gets: 0, negs: 1 });
 });
 
+test('pad-forced 0 on a wrong buzz is a miss, not a neg', () => {
+  let s = start();
+  s = play(s,
+    { type: 'buzz', player: 'A', unitIdx: 5 },         // mid-reading
+    { type: 'verdict', result: 'wrong', points: 0 });  // host declines the penalty
+  assert.equal(scores(s).A, 0);
+  assert.equal(s.log[0].kind, 'miss');
+  assert.deepEqual(tossupStats(s).A, { powers: 0, gets: 0, negs: 0 });
+  assert.deepEqual(s.current.lockouts, ['A'], 'wrong is wrong: still locked out');
+});
+
 test('dead + next cycle (dead is logged for history)', () => {
   let s = start();
   s = play(s, { type: 'dead' }, { type: 'next' });

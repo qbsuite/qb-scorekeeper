@@ -215,6 +215,36 @@ test('after a refresh, undoing a neg releases the lockout', { skip }, async () =
   }
 });
 
+test('wrong for 0 via the pad: stat line counts no neg; -5 does', { skip }, async () => {
+  const { $, win } = await boot({});
+  await playToReading($, 'reveal');
+  const rowOf = name => [...win.document.querySelectorAll('.prow')].find(r => r.dataset.p === name);
+  const padTap = (name, v) =>
+    [...rowOf(name).querySelectorAll('.pbtns button')].find(b => b.dataset.v === v).click();
+
+  $('buzz').click();                       // Kim buzzes mid-reading
+  await sleep(10);
+  padTap('Kim', '0');                      // wrong, host declines the penalty
+  await sleep(10);
+  assert.match(rowOf('Kim').querySelector('.pscore').textContent, /^0$/);
+  assert.equal(rowOf('Kim').querySelector('.pstat').textContent, '0/0/0',
+    'a 0 is not a neg in the x/y/z stat line');
+  assert.ok(rowOf('Kim').classList.contains('locked'), 'still locked out');
+
+  $('deadbtn').click();                    // q1 done
+  await sleep(10);
+  $('nextbtn').click();                    // q2 reading
+  await sleep(30);
+  $('buzz').click();
+  await sleep(10);
+  padTap('Kim', '-5');                     // a real neg
+  await sleep(10);
+  assert.match(rowOf('Kim').querySelector('.pscore').textContent, /^-5$/);
+  assert.equal(rowOf('Kim').querySelector('.pstat').textContent, '0/0/1');
+  $('deadbtn').click();                    // stop the reveal clock: no
+  await sleep(10);                         // stray timers into later tests
+});
+
 test('clicking a tossup header in the history jumps review there', { skip }, async () => {
   const { $, win } = await boot({});
   await playToReading($, 'text');
