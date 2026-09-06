@@ -285,3 +285,65 @@ test('refresh mid-adjudication: the pending buzz survives and verdicts', { skip 
     assert.ok(!$('anspanel').classList.contains('hidden'), 'question done after verdict');
   }
 });
+
+test('upload a MODAQ .json packet: parses, sanitizes, and plays', { skip }, async () => {
+  const { $, win } = await boot({});
+  const MODAQ = JSON.stringify({
+    tossups: [
+      { question: 'This piece opens with <b>C, D, E</b> before (*) the power mark lands.',
+        answer: 'Ludwig van <b><u>Beethoven</u></b>', number: 1 },
+      { question: 'Second tossup text goes here.',
+        answer: 'plain <req>required</req>', number: 2 },
+    ],
+    bonuses: [
+      { leadin: 'For 10 points each:', parts: ['Part <i>one</i>.', 'Part two.', 'Part three.'],
+        answers: ['<b><u>A1</u></b>', 'A2 <script>evil()</script>', 'A3'],
+        number: 1, values: [10, 10, 10] },
+    ],
+  });
+  // a real change event on the real input; only .name/.text() are read
+  const fake = { name: 'Packet 1.json', text: async () => MODAQ };
+  Object.defineProperty($('upload'), 'files', { value: [fake], configurable: true });
+  await $('upload').onchange();
+  assert.match($('setstatus').textContent, /2 tossups, 1 bonuses/);
+  assert.ok(!$('loadbtn').disabled, 'load enabled');
+  assert.match($('packetpick').innerHTML, /2 TU/);
+
+  $('modepick').value = 'text';
+  $('loadbtn').click();
+  await sleep(30);
+  $('startbtn').click();
+  await sleep(10);
+  $('addplayerq').click();                 // prompt() -> Kim
+  await sleep(10);
+
+  // the question renders from sanitized text: tags stripped, power mark kept
+  assert.match($('qtext').textContent, /\(\*\)/);
+  assert.ok(!$('qtext').innerHTML.includes('<b>'), 'tags stripped from question text');
+
+  win.document.querySelector('#qtext .w').click();   // buzz
+  await sleep(10);
+  $('vcorrect').click();                             // Kim +10 -> bonus opens
+  await sleep(10);
+
+  // the formatted answer line keeps MODAQ's whitelisted tags
+  assert.ok($('anspanel').querySelector('u'), 'answer keeps <u> formatting');
+  assert.match($('anspanel').textContent, /Beethoven/);
+
+  // bonus: leadin/parts sanitized for display; a hostile answer tag is
+  // escaped into visible text, never parsed as markup
+  const bp = $('bonuspanel');
+  assert.ok(!bp.classList.contains('hidden'), 'bonus panel active');
+  assert.match(bp.textContent, /Part one\./);
+  assert.ok(!bp.querySelector('script'), 'hostile tag neutralized');
+  assert.ok(bp.textContent.includes('<script>evil()'), 'escaped, not dropped');
+});
+
+test('a .json upload that is not a packet reports a clear error', { skip }, async () => {
+  const { $ } = await boot({});
+  const fake = { name: 'notes.json', text: async () => '{"hello": "world"}' };
+  Object.defineProperty($('upload'), 'files', { value: [fake], configurable: true });
+  await $('upload').onchange();
+  assert.match($('setstatus').textContent, /not a packet JSON/);
+  assert.ok($('loadbtn').disabled, 'load stays disabled');
+});

@@ -493,14 +493,55 @@ $('loadbtn').onclick = () => {
 };
 
 // ---------- upload your own packets (parsed client-side) ----------
-// Each .docx/.txt file becomes one packet, parsed IN THE BROWSER by
-// the vendored qb-packet-parser (qbreader's parser, JS port — see
-// vendor/qb_packet_parser.mjs; no hosted service involved). Its output
-// is the same qbreader doc shape the R2 sets use — question_sanitized,
-// answers, even auto-classified categories — so everything downstream
-// (reading modes, bonuses, rooms) works unchanged. Uploads have no TTS
-// audio; audio mode falls back to reveal automatically.
+// Each file becomes one packet, handled IN THE BROWSER. .docx/.txt go
+// through the vendored qb-packet-parser (qbreader's parser, JS port —
+// see vendor/qb_packet_parser.mjs; no hosted service involved). .json
+// is a MODAQ / qbreader packet — already structured, so it just gets
+// normalized (below). Either way the result is the same qbreader doc
+// shape the R2 sets use — question_sanitized, answers — so everything
+// downstream (reading modes, bonuses, rooms) works unchanged. Uploads
+// have no TTS audio; audio mode falls back to reveal automatically.
 let ParserClass = null;   // lazy-loaded: the bundle is ~2 MB
+
+// MODAQ/qbreader packet JSON -> the doc shape above. MODAQ carries
+// formatting tags in question/answer text; sanitized fields (what the
+// reveal/read views use) get them stripped, while answer HTML keeps
+// only MODAQ's few formatting tags — everything else is escaped, so a
+// hostile file can't inject markup into player pages (bonus answers
+// render as raw HTML there).
+const stripTags = s => String(s ?? '').replace(/<[^>]*>/g, '');
+const safeFormatted = s => String(s ?? '')
+  .replace(/<(?!\/?(?:b|i|u|em|strong|sub|sup|req)>)/gi, '&lt;')
+  .replace(/<(\/?)req>/gi, (m, close) => close ? '</u></b>' : '<b><u>');
+
+function parseJsonPacket(text) {
+  let j;
+  try { j = JSON.parse(text); } catch (e) { return null; }
+  if (!j || !Array.isArray(j.tossups) || !j.tossups.length) return null;
+  const warnings = [];
+  const tossups = j.tossups.map((t, i) => {
+    if (!t || typeof t.question !== 'string' || !t.question.trim()
+        || typeof t.answer !== 'string' || !t.answer.trim()) {
+      warnings.push(`tossup ${i + 1} is missing question or answer text`);
+      t = { question: '', answer: '', ...t };
+    }
+    return { ...t,
+      question: String(t.question ?? ''),
+      question_sanitized: t.question_sanitized || stripTags(t.question),
+      answer: safeFormatted(t.answer),
+    };
+  });
+  const bonuses = (Array.isArray(j.bonuses) ? j.bonuses : []).map(raw => {
+    const b = raw || {};
+    return { ...b,
+      leadin_sanitized: b.leadin_sanitized || stripTags(b.leadin),
+      parts_sanitized: Array.isArray(b.parts_sanitized) ? b.parts_sanitized
+        : Array.isArray(b.parts) ? b.parts.map(stripTags) : [],
+      answers: (Array.isArray(b.answers) ? b.answers : []).map(safeFormatted),
+    };
+  });
+  return { data: { tossups, bonuses }, warnings };
+}
 
 // The parser needs to know whether the packet has question numbers /
 // category tags, and guessing wrong ruins the parse — so try the
@@ -527,7 +568,7 @@ $('upload').onchange = async () => {
   const files = [...$('upload').files].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
   if (!files.length) return;
   $('loadbtn').disabled = true;
-  if (!ParserClass) {
+  if (!ParserClass && files.some(f => !/\.json$/i.test(f.name))) {
     $('setstatus').textContent = 'Loading parser…';
     ParserClass = (await import('./vendor/qb_packet_parser.mjs')).default;
   }
@@ -535,11 +576,15 @@ $('upload').onchange = async () => {
   let warned = 0;
   for (const f of files) {
     $('setstatus').textContent = `Parsing ${f.name}…`;
+    const isJson = /\.json$/i.test(f.name);
     const isDocx = /\.docx$/i.test(f.name);
-    const input = isDocx ? await f.arrayBuffer() : await f.text();
-    const best = await parsePacketAuto(input, isDocx, f.name);
+    const best = isJson
+      ? parseJsonPacket(await f.text())
+      : await parsePacketAuto(isDocx ? await f.arrayBuffer() : await f.text(), isDocx, f.name);
     if (!best) {
-      $('setstatus').textContent = `${f.name}: couldn’t find any questions — is it a packet in docx/txt form?`;
+      $('setstatus').textContent = isJson
+        ? `${f.name}: not a packet JSON — expected a MODAQ/qbreader packet with a tossups array`
+        : `${f.name}: couldn’t find any questions — is it a packet in docx/txt form?`;
       return;
     }
     warned += best.warnings.length;
