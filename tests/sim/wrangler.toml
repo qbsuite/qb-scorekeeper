@@ -1,0 +1,13 @@
+# Local-only config for tests/sim_buzzers.mjs: the room server behind a
+# meter. Never deploy this (`wrangler dev` only).
+name = "qb-rooms-sim"
+main = "meter_worker.js"
+compatibility_date = "2026-07-01"
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "RoomDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RoomDO"]

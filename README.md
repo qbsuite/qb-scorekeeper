@@ -63,6 +63,13 @@ question text from the library-of-stock R2 bucket (`catalog.json`,
   All rules live here; the app is data loading + DOM.
 - `node --test tests/*.test.mjs` — engine rule vectors + the
   audio-clock→position mapper.
+- `npm run sim:buzzers` — prices the room server in Cloudflare billing
+  units: real WebSocket games (moderator + phones, buzz mashing) against
+  `rooms/worker.js` behind a local meter (`tests/sim/`), scaled to
+  tournament days and checked against the free and paid plans. It starts
+  and stops its own `wrangler dev`. Knobs are env vars (`ROOMS`,
+  `PLAYERS`, `TOSSUPS`, `BUZZES`, `QLOG`, `TOURNAMENTS`, … — see the file
+  header); rerun after changing `rooms/worker.js` to see what it saved.
 - `app/vendor/` — vendored code with provenance headers: qbreader's
   answer checker (ISC) and the reveal-unit splitter shared with the
   library-of-stock reader (must stay identical; see file header).
